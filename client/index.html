@@ -1,0 +1,106 @@
+<html>
+  <head>
+    <title>namdu1radio - audio conference</title>
+  </head>
+  <body>
+      <div id="main-message-area" style="display: flex; flex: 1; justify-content: center; align-items: center; flex-direction: column;">
+        <h2 style="color: #ed2939;">Connecting...</h2>
+      </div>
+      <div id="audios-container" style="display: none;"></div>
+
+    <!-- HTML UI above this -->
+
+    <!-- JS Dependencies -->
+
+    <script src="./js/RTCMultiConnection.min.js"></script>
+    <script src="./js/adapter.js"></script>
+    <script src="./js/socket.io.js"></script>
+    
+    <link rel="stylesheet" href="./css/getHTMLMediaElement.css">
+    <script src="./js/getHTMLMediaElement.js"></script>
+
+    <!-- Flow -->
+    <script>
+
+      function displaySuccessConnectionMessage() {
+        document.getElementById("main-message-area").innerHTML = `
+        <h2 style="color: #5cb85c;">Connected!</h2>
+        <br/>
+        <h3><span id="numOfPeers">0</span> people joined</h3>
+        `;
+      }
+
+      function updateNumOfPeers() {
+        document.getElementById("numOfPeers").innerHTML = numberOfPeers;
+      }
+
+      window.onload = function(){
+        connection.openOrJoin("namdu1radio-audio-conference", function(isRoomExist, roomid) {
+          displaySuccessConnectionMessage();
+        });
+      }//join the namdu1radio audio conference once page is finished loading
+
+      let numberOfPeers = 0;
+      var connection = new RTCMultiConnection(); //RTC object which handles many-to-many connections
+
+      // by default, socket.io server is assumed to be deployed on your own URL
+      connection.socketURL = '/';
+      
+      // comment-out below line if you do not have your own socket.io server
+      //connection.socketURL = 'https://rtcmulticonnection.herokuapp.com:443/';
+
+      connection.socketURL = "http://192.168.1.15:443/";
+      
+      connection.socketMessageEvent = 'namdu1radio-audio-conference';
+
+      connection.session = {
+          audio: true,
+          video: false
+      };
+
+      connection.mediaConstraints = {
+          audio: true,
+          video: false
+      };
+
+      connection.sdpConstraints.mandatory = {
+          OfferToReceiveAudio: true,
+          OfferToReceiveVideo: false
+      };
+
+      connection.audiosContainer = document.getElementById('audios-container');
+      connection.onstream = function(event) {
+        var width = parseInt(connection.audiosContainer.clientWidth / 2) - 20;
+        var mediaElement = getHTMLMediaElement(event.mediaElement, {
+            title: event.userid,
+            buttons: ['full-screen'],
+            width: width,
+            showOnMouseEnter: false
+        });
+
+        connection.audiosContainer.appendChild(mediaElement);
+
+        setTimeout(function() {
+            mediaElement.media.play();
+        }, 5000);
+
+        mediaElement.id = event.streamid;
+
+        numberOfPeers += 1;
+        updateNumOfPeers();
+    };
+
+    connection.onstreamended = function(event) {
+      var mediaElement = document.getElementById(event.streamid);
+      if (mediaElement) {
+          mediaElement.parentNode.removeChild(mediaElement);
+      }
+
+      numberOfPeers -=1;
+      updateNumOfPeers();
+    };
+
+
+    </script>
+  </body>
+</html>
