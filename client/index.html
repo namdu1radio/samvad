@@ -3,7 +3,10 @@
     <title>namdu1radio - audio conference</title>
   </head>
   <body>
-      <div id="audios-container"></div>
+      <div id="main-message-area" style="display: flex; flex: 1; justify-content: center; align-items: center; flex-direction: column;">
+        <h2 style="color: #ed2939;">Connecting...</h2>
+      </div>
+      <div id="audios-container" style="display: none;"></div>
 
     <!-- HTML UI above this -->
 
@@ -18,16 +21,27 @@
 
     <!-- Flow -->
     <script>
+
+      function displaySuccessConnectionMessage() {
+        document.getElementById("main-message-area").innerHTML = `
+        <h2 style="color: #5cb85c;">Connected!</h2>
+        <br/>
+        <h3><span id="numOfPeers">0</span> people joined</h3>
+        `;
+      }
+
+      function updateNumOfPeers() {
+        document.getElementById("numOfPeers").innerHTML = numberOfPeers;
+      }
+
       window.onload = function(){
         connection.openOrJoin("namdu1radio-audio-conference", function(isRoomExist, roomid) {
-          if (!isRoomExist) {
-              showRoomURL(roomid);
-          }
+          displaySuccessConnectionMessage();
         });
       }//join the namdu1radio audio conference once page is finished loading
 
+      let numberOfPeers = 0;
       var connection = new RTCMultiConnection(); //RTC object which handles many-to-many connections
-      var connection = new RTCMultiConnection();
 
       // by default, socket.io server is assumed to be deployed on your own URL
       connection.socketURL = '/';
@@ -71,6 +85,9 @@
         }, 5000);
 
         mediaElement.id = event.streamid;
+
+        numberOfPeers += 1;
+        updateNumOfPeers();
     };
 
     connection.onstreamended = function(event) {
@@ -78,6 +95,9 @@
       if (mediaElement) {
           mediaElement.parentNode.removeChild(mediaElement);
       }
+
+      numberOfPeers -=1;
+      updateNumOfPeers();
     };
 
 
