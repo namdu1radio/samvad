@@ -1,0 +1,14 @@
+{
+  "name": "namdu1radio-audio-conference-server",
+  "version": "1.0.0",
+  "description": "namdu1radio audio conference signalling server",
+  "main": "app.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "author": "Avinesh Singh",
+  "license": "ISC",
+  "dependencies": {
+    "rtcmulticonnection-server": "^1.3.1"
+  }
+}
